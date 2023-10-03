@@ -1,0 +1,7 @@
+-
+  uriPattern: 'stripe/payment/{orderNumber}'
+  defaults:
+    '@package': 'NeosRulez.Shop.Payment.Stripe'
+    '@controller': 'Stripe'
+    '@action': 'payment'
+  appendExceedingArguments: 'true'

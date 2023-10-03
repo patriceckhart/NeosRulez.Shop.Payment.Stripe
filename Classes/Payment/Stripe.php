@@ -1,0 +1,114 @@
+<?php
+namespace NeosRulez\Shop\Payment\Stripe\Payment;
+
+use Neos\ContentRepository\Domain\Service\ContextFactoryInterface;
+use Neos\Flow\Annotations as Flow;
+use Doctrine\ORM\Mapping as ORM;
+use NeosRulez\Shop\Domain\Model\Order;
+use NeosRulez\Shop\Payment\Payment\AbstractPayment;
+use NeosRulez\Shop\Payment\Stripe\Domain\Repository\StripeRepository;
+use Stripe\StripeClient;
+
+/**
+ * @Flow\Scope("singleton")
+ */
+class Stripe extends AbstractPayment
+{
+
+    /**
+     * @Flow\Inject
+     * @var ContextFactoryInterface
+     */
+    protected $contextFactory;
+
+    /**
+     * @Flow\Inject
+     * @var StripeRepository
+     */
+    protected $stripeRepository;
+
+    /**
+     * @param array $payment
+     * @param array $args
+     * @param string $successUri
+     * @return string
+     */
+    public function execute(array $payment, array $args, string $successUri): string
+    {
+        $order = $this->orderRepository->findByOrderNumber($args['order_number']);
+        $order->setCanceled(false);
+        $this->orderRepository->update($order);
+
+        $this->stockService->execute();
+        $this->mailService->execute($args);
+        $this->cart->refreshCoupons();
+
+        return $this->createPayment($payment['secretKey'], ((float) $args['summary']['total'] * 100), $args['order_number'], $successUri, $args['failure_uri'], $args['email']);
+    }
+
+    /**
+     * @param string $secretKey
+     * @param int $total
+     * @param string $orderNumber
+     * @param string $successUri
+     * @param string $failureUri
+     * @param string $email
+     * @return string
+     */
+    private function createPayment(string $secretKey, int $total, string $orderNumber, string $successUri, string $failureUri, string $email): string
+    {
+        $stripe = new StripeClient(
+            $secretKey
+        );
+        $product = $stripe->products->create([
+            'name' => '#' . $orderNumber,
+        ]);
+        $price = $stripe->prices->create([
+            'unit_amount' => $total,
+            'currency' => 'eur',
+            'product' => $product,
+        ]);
+        $session = $stripe->checkout->sessions->create([
+            'success_url' => $successUri,
+            'cancel_url' => $failureUri,
+            'line_items' => [
+                [
+                    'price' => $price->id,
+                    'quantity' => 1,
+                ],
+            ],
+            'mode' => 'payment',
+            'customer_email' => $email
+        ]);
+
+        $this->stripeRepository->createStripePayment($orderNumber, $session->id);
+
+        return $session->url;
+    }
+
+    /**
+     * @param int $orderNumber
+     * @return bool
+     */
+    public function isPaid(int $orderNumber): bool
+    {
+        $order = $this->orderRepository->findByOrderNumber($orderNumber);
+        $context = $this->contextFactory->create();
+        $payment = $context->getNodeByIdentifier($order->getPayment());
+        $stripeSession = $this->stripeRepository->findByOrderNumber($orderNumber)->count() > 0 ? $this->stripeRepository->findByOrderNumber($orderNumber)->getFirst() : false;
+        if($stripeSession) {
+            $paymentSessionId = $stripeSession->getPaymentSessionId();
+            $stripe = new StripeClient(
+                $payment->getProperty('secretKey')
+            );
+            $session = $stripe->checkout->sessions->retrieve(
+                $paymentSessionId, []
+            );
+            if($session->status === 'complete') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+}

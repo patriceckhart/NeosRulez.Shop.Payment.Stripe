@@ -1,0 +1,19 @@
+{
+    "description": "Stripe payment provider for the neosrulez-shop package",
+    "type": "neos-package",
+    "name": "neosrulez/shop-payment-stripe",
+    "require": {
+        "neosrulez/shop-payment": "@dev",
+        "stripe/stripe-php": "^v12.5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "NeosRulez\\Shop\\Payment\\Stripe\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "NeosRulez.Shop.Payment.Stripe"
+        }
+    }
+}

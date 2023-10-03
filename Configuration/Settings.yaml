@@ -1,0 +1,17 @@
+Neos:
+  Flow:
+    mvc:
+      routes:
+        'NeosRulez.Shop.Payment.Stripe': true
+  Neos:
+    fusion:
+      autoInclude:
+        NeosRulez.Shop.Payment.Stripe: true
+
+NeosRulez:
+  Shop:
+    Payment:
+      payments:
+        -
+          nodeType: 'NeosRulez.Shop.Payment.Stripe:Payment.Stripe'
+          class: 'NeosRulez\Shop\Payment\Stripe\Payment\Stripe'

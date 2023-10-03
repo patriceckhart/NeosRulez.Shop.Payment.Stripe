@@ -1,0 +1,45 @@
+'NeosRulez.Shop.Payment.Stripe:Payment.Stripe':
+  superTypes:
+    'NeosRulez.Shop.Payment:Payment.Generic': true
+  ui:
+    label: Stripe
+    icon: fab fa-stripe
+    group: payment
+    inspector:
+      groups:
+        document:
+          label: Stripe
+          icon: fab fa-stripe
+  properties:
+    successPage:
+      type: reference
+      ui:
+        label: Success page
+        reloadIfChanged: true
+        inspector:
+          group: document
+          position: after faicon
+    failurePage:
+      type: reference
+      ui:
+        label: Failure page
+        reloadIfChanged: true
+        inspector:
+          group: document
+          position: after successPage
+    publicKey:
+      type: string
+      ui:
+        label: Public key
+        reloadIfChanged: true
+        inspector:
+          group: document
+          position: after failurePage
+    secretKey:
+      type: string
+      ui:
+        label: Secret key
+        reloadIfChanged: true
+        inspector:
+          group: document
+          position: after publicKey
