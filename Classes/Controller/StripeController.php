@@ -19,13 +19,11 @@ class StripeController extends ActionController
 
     /**
      * @param int $orderNumber
-     * @return void
+     * @return bool
      */
-    public function paymentAction(int $orderNumber): void
+    public function paymentAction(int $orderNumber): bool
     {
-        \Neos\Flow\var_dump($orderNumber);
-        $payment = $this->stripe->isPaid($orderNumber);
-        \Neos\Flow\var_dump($payment);
+        return $this->stripe->isPaid($orderNumber);
     }
 
 }
