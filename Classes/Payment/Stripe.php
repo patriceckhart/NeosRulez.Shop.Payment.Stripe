@@ -111,4 +111,12 @@ class Stripe extends AbstractPayment
         return false;
     }
 
+    /**
+     * @return void
+     */
+    public function createWebhook(): void
+    {
+
+    }
+
 }

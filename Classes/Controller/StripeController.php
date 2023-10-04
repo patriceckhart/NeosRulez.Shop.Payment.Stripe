@@ -26,4 +26,12 @@ class StripeController extends ActionController
         return $this->stripe->isPaid($orderNumber);
     }
 
+    /**
+     * @return void
+     */
+    public function webhookAction(): void
+    {
+
+    }
+
 }
