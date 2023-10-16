@@ -12,6 +12,6 @@ NeosRulez:
   Shop:
     Payment:
       payments:
-        -
+        stripe:
           nodeType: 'NeosRulez.Shop.Payment.Stripe:Payment.Stripe'
           class: 'NeosRulez\Shop\Payment\Stripe\Payment\Stripe'
