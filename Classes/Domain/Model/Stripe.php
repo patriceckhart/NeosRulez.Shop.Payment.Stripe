@@ -35,23 +35,23 @@ class Stripe
     /**
      * @var string
      */
-    protected $paymentSessionId = 0;
+    protected $checkoutSessionId = 0;
 
     /**
      * @return string
      */
-    public function getPaymentSessionId(): string
+    public function getCheckoutSessionId(): string
     {
-        return $this->paymentSessionId;
+        return $this->checkoutSessionId;
     }
 
     /**
-     * @param string $paymentSessionId
+     * @param string $checkoutSessionId
      * @return void
      */
-    public function setPaymentSessionId(string $paymentSessionId): void
+    public function setCheckoutSessionId(string $checkoutSessionId): void
     {
-        $this->paymentSessionId = $paymentSessionId;
+        $this->checkoutSessionId = $checkoutSessionId;
     }
 
     /**

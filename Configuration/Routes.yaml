@@ -4,7 +4,7 @@
     '@package': 'NeosRulez.Shop.Payment.Stripe'
     '@controller': 'Stripe'
     '@action': 'payment'
-  appendExceedingArguments: 'true'
+  appendExceedingArguments: true
 
 -
   uriPattern: 'stripe/webhook'
@@ -12,4 +12,4 @@
     '@package': 'NeosRulez.Shop.Payment.Stripe'
     '@controller': 'Stripe'
     '@action': 'webhook'
-  appendExceedingArguments: 'true'
+  appendExceedingArguments: true

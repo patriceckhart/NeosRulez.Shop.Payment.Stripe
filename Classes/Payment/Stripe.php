@@ -2,6 +2,7 @@
 namespace NeosRulez\Shop\Payment\Stripe\Payment;
 
 use Neos\ContentRepository\Domain\Service\ContextFactoryInterface;
+use Neos\Eel\FlowQuery\FlowQuery;
 use Neos\Flow\Annotations as Flow;
 use Doctrine\ORM\Mapping as ORM;
 use NeosRulez\Shop\Domain\Model\Order;
@@ -37,12 +38,8 @@ class Stripe extends AbstractPayment
     {
         $order = $this->orderRepository->findByOrderNumber($args['order_number']);
         $order->setCanceled(false);
+        $order->setDone(true);
         $this->orderRepository->update($order);
-
-        $this->stockService->execute();
-        $this->mailService->execute($args);
-        $this->cart->refreshCoupons();
-
         return $this->createPayment($payment['secretKey'], ((float) $args['summary']['total'] * 100), $args['order_number'], $successUri, $args['failure_uri'], $args['email']);
     }
 
@@ -69,7 +66,7 @@ class Stripe extends AbstractPayment
             'product' => $product,
         ]);
         $session = $stripe->checkout->sessions->create([
-            'success_url' => $successUri,
+            'success_url' => $this->generateSuccessUri($orderNumber, $successUri),
             'cancel_url' => $failureUri,
             'line_items' => [
                 [
@@ -112,11 +109,64 @@ class Stripe extends AbstractPayment
     }
 
     /**
-     * @return void
+     * @return array
      */
-    public function createWebhook(): void
+    public function getPaymentNodeSecrets(): array
     {
+        $context = $this->contextFactory->create();
+        $paymentNode = (new FlowQuery(array($context->getCurrentSiteNode())))->find('[instanceof NeosRulez.Shop.Payment.Stripe:Payment.Stripe]')->context(array('workspaceName' => 'live'))->filter('[_hidden=false]')->sort('_index', 'ASC')->get();
+        if(count($paymentNode) > 0 && $paymentNode[0]->hasProperty('webhookEndpointSecret') && $paymentNode[0]->hasProperty('secretKey')) {
+            return [
+                'webhookEndpointSecret' => $paymentNode[0]->getProperty('webhookEndpointSecret'),
+                'secret' => $paymentNode[0]->getProperty('secretKey')
+            ];
+        }
+        return [];
+    }
 
+    /**
+     * @return string
+     */
+    public function webhook(): string
+    {
+        $paymentNode = $this->getPaymentNodeSecrets();
+        if(!empty($paymentNode)) {
+            $stripe = new StripeClient(
+                $paymentNode['secret']
+            );
+            $endpoint_secret = $paymentNode['webhookEndpointSecret'];
+
+            $payload = @file_get_contents('php://input');
+            $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
+            $event = null;
+
+            try {
+                $event = \Stripe\Webhook::constructEvent(
+                    $payload, $sig_header, $endpoint_secret
+                );
+            } catch(\UnexpectedValueException $e) {
+                // Invalid payload
+                http_response_code(400);
+                exit();
+            } catch(\Stripe\Exception\SignatureVerificationException $e) {
+                // Invalid signature
+                http_response_code(400);
+                exit();
+            }
+
+            // Handle the event
+            switch ($event->type) {
+                case 'checkout.session.completed':
+                    $session = $event->data->object;
+                    if($session->payment_status === 'paid') {
+                        return $session->id;
+                    }
+                    return '';
+                default:
+                    return '';
+            }
+        }
+        return '';
     }
 
 }

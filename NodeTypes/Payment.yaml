@@ -43,3 +43,11 @@
         inspector:
           group: document
           position: after publicKey
+    webhookEndpointSecret:
+      type: string
+      ui:
+        label: Webhook endpoint secret
+        reloadIfChanged: true
+        inspector:
+          group: document
+          position: after secretKey

@@ -14,14 +14,14 @@ class StripeRepository extends Repository
 
     /**
      * @param int $orderNumber
-     * @param string $paymentSessionId
+     * @param string $checkoutSessionId
      * @return void
      */
-    public function createStripePayment(int $orderNumber, string $paymentSessionId): void
+    public function createStripePayment(int $orderNumber, string $checkoutSessionId): void
     {
         $newStripe = new Stripe();
         $newStripe->setOrderNumber($orderNumber);
-        $newStripe->setPaymentSessionId($paymentSessionId);
+        $newStripe->setCheckoutSessionId($checkoutSessionId);
         $this->add($newStripe);
     }
 
