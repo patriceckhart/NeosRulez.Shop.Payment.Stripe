@@ -3,7 +3,7 @@
     "type": "neos-package",
     "name": "neosrulez/shop-payment-stripe",
     "require": {
-        "neosrulez/shop-payment": "@dev",
+        "neosrulez/shop-payment": "^1.0",
         "stripe/stripe-php": "^v12.5.0"
     },
     "autoload": {
