@@ -52,19 +52,23 @@ class StripeController extends ActionController
      */
     public function webhookAction(): bool
     {
-        $sessionId = $this->stripe->webhook();
-        if($sessionId !== '') {
-            $stripeSessions = $this->stripeRepository->findByCheckoutSessionId($sessionId);
-            if($stripeSessions->count() > 0)
-                $stripeSession = $stripeSessions->getFirst();
+        if(array_key_exists('HTTP_STRIPE_SIGNATURE', $_SERVER)) {
+            $sessionId = $this->stripe->webhook();
+            if($sessionId !== '') {
+                $stripeSessions = $this->stripeRepository->findByCheckoutSessionId($sessionId);
+                if($stripeSessions->count() > 0)
+                    $stripeSession = $stripeSessions->getFirst();
 
-            $order = $this->orderRepository->findByOrdernumber($stripeSession->getOrderNumber());
-            $order->setPaid(true);
-            $this->finisherService->initAfterPaymentFinishers($order->getInvoicedata());
-            $this->orderRepository->update($order);
-            $this->persistenceManager->persistAll();
-            return true;
+                $order = $this->orderRepository->findByOrdernumber($stripeSession->getOrderNumber());
+                $order->setPaid(true);
+                $this->finisherService->initAfterPaymentFinishers($order->getInvoicedata());
+                $this->orderRepository->update($order);
+                $this->persistenceManager->persistAll();
+                $this->response->setStatusCode(200);
+                return true;
+            }
         }
+        $this->response->setStatusCode(404);
         return false;
     }
 
