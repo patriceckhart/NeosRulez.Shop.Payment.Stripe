@@ -13,3 +13,11 @@
     '@controller': 'Stripe'
     '@action': 'webhook'
   appendExceedingArguments: true
+
+-
+  uriPattern: 'stripe/test/webhook/{orderNumber}'
+  defaults:
+    '@package': 'NeosRulez.Shop.Payment.Stripe'
+    '@controller': 'Stripe'
+    '@action': 'webhookTest'
+  appendExceedingArguments: true

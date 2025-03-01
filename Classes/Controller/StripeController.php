@@ -72,4 +72,19 @@ class StripeController extends ActionController
         return false;
     }
 
+    /**
+     * @param int $orderNumber
+     * @return bool
+     */
+    public function webhookTestAction(int $orderNumber): bool
+    {
+        $order = $this->orderRepository->findByOrdernumber($orderNumber);
+        $order->setPaid(true);
+        $this->finisherService->initAfterPaymentFinishers($order->getInvoicedata());
+        $this->orderRepository->update($order);
+        $this->persistenceManager->persistAll();
+        $this->response->setStatusCode(200);
+        return true;
+    }
+
 }
