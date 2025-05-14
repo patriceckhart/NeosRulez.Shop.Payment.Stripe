@@ -40,6 +40,9 @@ class Stripe extends AbstractPayment
         $order->setCanceled(false);
         $order->setDone(true);
         $this->orderRepository->update($order);
+        if ((float)$args['summary']['total'] <= 0.5) {
+            return $this->generateSuccessUri($args['order_number'], $successUri);
+        }
         return $this->createPayment($payment['secretKey'], ((float) $args['summary']['total'] * 100), $args['order_number'], $successUri, $args['failure_uri'], $args['email']);
     }
 
